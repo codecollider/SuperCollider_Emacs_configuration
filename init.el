@@ -12,6 +12,21 @@
   (package-install 'use-package))
 (require 'use-package)
 
+;; Lua Keybindings
+(with-eval-after-load 'lua-mode
+  ;; Remove old keys first (optional if reloading)
+  (define-key lua-mode-map (kbd "C-c C-c") nil)
+  (define-key lua-mode-map (kbd "C-c C-d") nil)
+  (define-key lua-mode-map (kbd "C-c C-l") nil)
+  (define-key lua-mode-map (kbd "C-c C-f") nil)
+
+  ;; Now define them cleanly
+  (define-key lua-mode-map (kbd "C-c C-c") 'lua-send-current-line)
+  (define-key lua-mode-map (kbd "C-c C-d") 'lua-send-region)
+  (define-key lua-mode-map (kbd "C-c C-l") 'lua-send-buffer)
+  (define-key lua-mode-map (kbd "C-c C-f") 'lua-search-documentation))
+
+
 ;; ------------------------
 ;; Startup UI
 ;; ------------------------
@@ -52,7 +67,16 @@
   :hook (after-init . global-company-mode)
   :config
   (setq company-idle-delay 0.2        ;; show completions after 0.2 sec
-        company-minimum-prefix-length 1))
+        company-minimum-prefix-length 1)
+
+;; Custom filter for candidates to prevent number completion
+  (push (apply-partially #'cl-remove-if
+                         (lambda (c)
+                           (or (string-match-p "[^\x00-\x7F]+" c)
+                               (string-match-p "[0-9]+" c)
+                               (and (eq major-mode 'org-mode)
+                                    (>= (length c) 15)))))
+        company-transformers))
 
 ;; Configure company for SuperCollider specifically
 (add-hook 'sclang-mode-hook
@@ -91,9 +115,24 @@
  ;; If you edit it by hand, you could mess it up, so be careful.
  ;; Your init file should contain only one such instance.
  ;; If there is more than one, they won't work right.
- '(custom-enabled-themes '(doric-marble doric-dark doric-cherry light-blue))
+ '(custom-enabled-themes '(ef-arbutus))
  '(custom-safe-themes
-   '("b48d0561c520a9f6284eb997a789bf6c599d49b5fe0d0e99e90194c84860c993"
+   '("00d7122017db83578ef6fba39c131efdcb59910f0fac0defbe726da8072a0729"
+     "ae20535e46a88faea5d65775ca5510c7385cbf334dfa7dde93c0cd22ed663ba0"
+     "a3a71b922fb6cbf9283884ac8a9109935e04550bcc5d2a05414a58c52a8ffc47"
+     "4c16a8be2f20a68f0b63979722676a176c4f77e2216cc8fe0ea200f597ceb22e"
+     "541282f66e5cc83918994002667d2268f0a563205117860e71b7cb823c1a11e9"
+     "1ad12cda71588cc82e74f1cabeed99705c6a60d23ee1bb355c293ba9c000d4ac"
+     "36c5acdaf85dda0dad1dd3ad643aacd478fb967960ee1f83981d160c52b3c8ac"
+     "19b62f442479efd3ca4c1cef81c2311579a98bbc0f3684b49cdf9321bd5dfdbf"
+     "d609d9aaf89d935677b04d34e4449ba3f8bbfdcaaeeaab3d21ee035f43321ff1"
+     "da69584c7fe6c0acadd7d4ce3314d5da8c2a85c5c9d0867c67f7924d413f4436"
+     "b3ba955a30f22fe444831d7bc89f6466b23db8ce87530076d1f1c30505a4c23b"
+     "fae5872ff90462502b3bedfe689c02d2fa281bc63d33cb007b94a199af6ccf24"
+     "ac893acecb0f1cf2b6ccea5c70ea97516c13c2b80c07f3292c21d6eb0cb45239"
+     "df39cc8ecf022613fc2515bccde55df40cb604d7568cb96cd7fe1eff806b863b"
+     "e85a354f77ae6c2e47667370a8beddf02e8772a02e1f7edb7089e793f4762a45"
+     "b48d0561c520a9f6284eb997a789bf6c599d49b5fe0d0e99e90194c84860c993"
      "395a8345d70ee3dd591fc0615dd172fa158fe422894b098bf59b5675a9acd6b5"
      "a8154615158cfa7533f050bbd1f4705cdbea386140a04988341a5a857799082e"
      "5f9bca97ed63c4694b9b1336297c40b809284701f8012659adafb307e4bb42b5"
@@ -109,7 +148,11 @@
      "af443124becfaa09a1cd9a5d6c610712db9f115225860657764e34d4e02ab43b"
      "9c6aa7eb1bde73ba1142041e628827492bd05678df4d9097cda21b1ebcb8f8b9"
      default))
- '(package-selected-packages '(company doric-themes dracula-theme ement lua-mode pulsar))
+ '(package-selected-packages
+   '(company doric-themes dracula-theme ef-themes ement lua-mode
+	     multi-vterm vterm))
+ '(sclang-auto-scroll-post-buffer t)
+ '(sclang-eval-line-forward nil)
  '(sclang-show-workspace-on-startup nil))
 (custom-set-faces
  ;; custom-set-faces was added by Custom.
@@ -134,7 +177,6 @@
 
 
 ;; Thank you, undltd!!! https://xn--w5d.cc/2024/07/28/supercollider-emacs-highlight-eval.html
-
 (require 'pulse)
 (defun my/sclang-highlight-defun (&optional silent-p)
   (cl-multiple-value-bind (beg end) (sclang-point-in-defun-p)
@@ -156,7 +198,6 @@
 
 
 ;; --- SuperCollider record setup ---
-
 ;; Set path where recordings should be stored
 (setq kf/sclang-recording-path "~/sc-recordings")  ;; change this!
 
@@ -182,7 +223,6 @@
 
 
 ;;SuperCollider Syntax Highlighting
-
 ;; Prevent default sclang-mode keywords from being applied
 (setq-local font-lock-defaults nil)
 
@@ -254,3 +294,5 @@
 
 ;; Hook into sclang-mode
    (add-hook 'sclang-mode-hook #'sclang-setup-extra-font-lock)
+
+
