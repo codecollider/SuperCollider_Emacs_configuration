@@ -69,7 +69,7 @@
   (setq company-idle-delay 0.2        ;; show completions after 0.2 sec
         company-minimum-prefix-length 1)
 
-;; Custom filter for candidates to prevent number completion
+;; Custom filter for candidates to prevent number completion.
   (push (apply-partially #'cl-remove-if
                          (lambda (c)
                            (or (string-match-p "[^\x00-\x7F]+" c)
